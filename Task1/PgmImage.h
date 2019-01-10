@@ -17,7 +17,7 @@ public:
 	int Open(const std::string&);
 	void MakeNoise(double);
 	bool CheckPixel(int, int, int) const;
-	bool CheckPixelGrayness(int, int) const;
+	int CheckPixelDencity() const;
 	const static int abscissa = plot_bound;
 	const static int ordinate = plot_bound;
 

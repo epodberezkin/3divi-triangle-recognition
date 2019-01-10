@@ -17,18 +17,18 @@ HoughTransform::~HoughTransform()
 
 void HoughTransform::MakeTransform(const PgmImage& original_image)
 {
-	unsigned int gray_pixel_count = 0;
-	for (int y = 0; y < original_image.ordinate; y++) {
-		for (int x = 0; x < original_image.abscissa; x++) {
-			if (original_image.CheckPixelGrayness(x, y)) gray_pixel_count++;
-		}
-	}
-	int	pixel_density = (gray_pixel_count < 125000) ? 4 : 7;
+	//проверка фильтра CheckPixel
+	//std::vector<unsigned char> check_bitmap(plot_bound * plot_bound, 0);
+
+	int	pixel_density = original_image.CheckPixelDencity();
 	// пробегаемся по пикселям изображения контуров
 	for (int y = 0; y < original_image.ordinate; y++) {
 		for (int x = 0; x < original_image.abscissa; x++) {
 			if (original_image.CheckPixel(x, y, pixel_density))  // это возможный пиксель контура?
 			{
+				//проверка фильтра CheckPixel
+				//check_bitmap[x + y * plot_bound] = 255;
+				
 				// рассмотрим все возможные прямые, которые могут проходить через эту точку
 				for (int f = 0; f < theta_max; f++) { //перебираем все возможные углы наклона
 					double theta = f * PI / 180.0;
@@ -40,6 +40,13 @@ void HoughTransform::MakeTransform(const PgmImage& original_image)
 			}
 		}
 	}
+	/* проверка фильтра CheckPixel
+		ofstream file("test_check.pgm", ios_base::out | ios::binary | ios_base::trunc);
+	if (!file.is_open()) return; // если файл не открыт
+	file << "P5\n" << plot_bound << " " << plot_bound << "\n" << gray_scale << "\n";
+	file.write((char *)&check_bitmap[0], check_bitmap.size());
+	file.close();
+	*/
 }
 
 void HoughTransform::FindLines(int count)
@@ -120,8 +127,8 @@ int HoughTransform::FindAccumMax(int& x, int& y)
 void HoughTransform::ErasePeak(int x,int y,int peak_area)
 {
 	// dy и dx проверям на границы массива
-	for (int dy = ((y - peak_area) > 0 ? (y - peak_area) : 0); dy <= ((y + peak_area) < (r_max - 1) ? (y + peak_area) : r_max-1); dy++)
-		for (int dx = ((x - peak_area) > 0 ? (x - peak_area) : 0); dx <= ((x + peak_area) < (theta_max - 1) ? (x + peak_area) : theta_max-1); dx++)
+	for (int dy = ((y - peak_area) > 0 ? (y - peak_area) : 0); dy <= ((y + peak_area) < (r_max - 1) ? (y + peak_area) : r_max - 1); dy++)
+		for (int dx = ((x - peak_area) > 0 ? (x - peak_area) : 0); dx <= ((x + peak_area) < (theta_max - 1) ? (x + peak_area) : theta_max - 1); dx++)
 		{
 			this->accum_array[dy * theta_max + dx] = 0;
 		}
