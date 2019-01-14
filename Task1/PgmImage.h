@@ -24,9 +24,9 @@ public:
 private:
 
 	double noise_probability;
-	std::uniform_real_distribution<double> unif_d;
-	std::uniform_int_distribution<int> unif_i;
-	std::default_random_engine re;
+	std::uniform_real_distribution<double> distribution_double;
+	std::uniform_int_distribution<int> distribution_int;
+	std::default_random_engine random_engine;
 	std::vector<unsigned char> bitmap;
 	const static int gray_level;
 };

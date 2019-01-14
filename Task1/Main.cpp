@@ -1,9 +1,8 @@
-//#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <time.h>
-#include <iomanip>
-
+//#include <sstream>
+//#include <time.h>
+//#include <iomanip>
+#include <stdexcept> // std::invalid_argument
+#include <iostream> //std::cerr
 #include "InputParser.h"
 #include "Triangle.h"
 #include "PgmImage.h"
@@ -16,9 +15,15 @@ int main(int argc, char **argv) {
 	InputParser input(argc, argv);
 	if (input.cmdOptionExists("-generate")) {
 		const std::string &noise_level = input.getCmdOption("-generate");
-		std::string::size_type sz;     // alias of size_t
-		double noise_probability = std::stod(noise_level, &sz);
-
+		std::string::size_type sz;	// alias of size_t
+		double noise_probability = 0.0;
+		try
+		{
+			noise_probability = std::stod(noise_level, &sz);
+		}
+		catch (const std::invalid_argument& ia) {
+			std::cerr << "Invalid argument: " << ia.what() << '\n';
+		}
 		Triangle random_triangle;
 		PgmImage triangle_image;
 
@@ -51,11 +56,7 @@ int main(int argc, char **argv) {
 			h_transf.FindLines(3);
 			//h_transf.Save("after.pgm");
 			h_transf.CalculateVertexes();
-			ofstream file("output.txt", ios_base::out | ios_base::trunc);
-			if (!file.is_open()) return -1; // если файл не открыт
-			for (auto i : h_transf.GetVertexes())
-				file << i.first << " " << i.second << endl;
-			file.close();
+			h_transf.SaveVertexes("output.txt");
 		}
 	}
 	return 0;

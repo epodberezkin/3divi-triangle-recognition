@@ -35,13 +35,13 @@ void HoughTransform::MakeTransform(const PgmImage& original_image)
 					double r = (y)*sin(theta) + (x)*cos(theta);
 					//если r укладывается в диапазон возможных значений, голосуем
 					if ( (r < r_max / 2) && (r >= -r_max / 2))
-						accum_array[(int)round(r + r_max / 2) * theta_max + f]++;
+						this->accum_array[static_cast<int>(round(r + r_max / 2) * theta_max + f)]++;
 				}
 			}
 		}
 	}
 	/* проверка фильтра CheckPixel
-		ofstream file("test_check.pgm", ios_base::out | ios::binary | ios_base::trunc);
+	ofstream file("test_check.pgm", ios_base::out | ios::binary | ios_base::trunc);
 	if (!file.is_open()) return; // если файл не открыт
 	file << "P5\n" << plot_bound << " " << plot_bound << "\n" << gray_scale << "\n";
 	file.write((char *)&check_bitmap[0], check_bitmap.size());
@@ -53,37 +53,50 @@ void HoughTransform::FindLines(int count)
 {
 	//находим count максимумов в цикле, зануляя предыдущий в квадрате +-10 
 	//зная что углы треугольника точно >30, плюс некоторая погрешность округления, приведения типов и арифметических операций (r может совпадать), точки должныть быть на расстоянии больше 20.
-	int max_th, max_rd = 0;
-	for (int i = 0; i < count; i++ )
+	std::pair<int, int> max_coordinates;
+	for (int i = 0; i < count; i++)
 	{
-		FindAccumMax(max_th, max_rd);
-		this->lines.push_back(std::make_pair(max_th, (max_rd - r_max / 2)));
-		ErasePeak(max_th, max_rd, 10);
+		max_coordinates = FindAccumMax();
+		this->ErasePeak(max_coordinates.first, max_coordinates.second, 10);
+		max_coordinates.second = max_coordinates.second - r_max / 2;
+		this->lines.push_back(max_coordinates);
 	}	
 }
 
 void HoughTransform::CalculateVertexes()
 {
 	//для каждых двух соседних линий определяем координаты пересечения
-	for (size_t i1 = 0; i1 < lines.size(); i1++)
+	for (size_t i1 = 0; i1 < this->lines.size(); i1++)
 	{
-		int i2 = (i1 == (lines.size() - 1) ? 0 : (i1 + 1));
+		int i2 = (i1 == (this->lines.size() - 1) ? 0 : (i1 + 1));
 		//решаем систему 2-х уравнений с 2-мя неизвестными по формуле Крамера
-		double det = cos(lines[i1].first * PI / 180.0) * sin(lines[i2].first * PI / 180.0) - cos(lines[i2].first * PI / 180.0) * sin(lines[i1].first * PI / 180.0);
-		if (0.0 == det)
+		double det = cos(this->lines[i1].first * PI / 180.0) * sin(this->lines[i2].first * PI / 180.0) - cos(this->lines[i2].first * PI / 180.0) * sin(this->lines[i1].first * PI / 180.0);
+		if (0.0 != det)
+		{
+			double det_x = this->lines[i1].second * sin(this->lines[i2].first * PI / 180.0) - this->lines[i2].second * sin(this->lines[i1].first * PI / 180.0);
+			double det_y = cos(this->lines[i1].first * PI / 180.0) * this->lines[i2].second - cos(this->lines[i2].first * PI / 180.0) * this->lines[i1].second;
+			// костыль для повышения точности, зная что изначальные координаты > 0
+			// если немного промахнулись и координата отрицательная, кладем 0
+			double x = (det_x / det > 0.0) ? (det_x / det) : 0.0;
+			double y = (det_y / det > 0.0) ? (det_y / det) : 0.0;
+			this->vertexes.push_back(std::make_pair(x, y));
+		} 
+		else
 		{
 			//линии параллельны, система не имеет решения, кладем нули :`(
-			vertexes.push_back(std::make_pair(std::numeric_limits<int>::quiet_NaN(), std::numeric_limits<int>::quiet_NaN()));
-			continue;
-		} 
-		double det_x = lines[i1].second * sin(lines[i2].first * PI / 180.0) - lines[i2].second * sin(lines[i1].first * PI / 180.0);
-		double det_y = cos(lines[i1].first * PI / 180.0) * lines[i2].second - cos(lines[i2].first * PI / 180.0) * lines[i1].second;
-		// костыль для повышения точности, зная что изначальные координаты > 0
-		// если немного промахнулись и координата отрицательная, кладем 0
-		double x = (det_x / det > 0) ? (det_x / det) : 0.0;
-		double y = (det_y / det > 0) ? (det_y / det) : 0.0;
-		vertexes.push_back(std::make_pair( x, y));
+			this->vertexes.push_back(std::make_pair(std::numeric_limits<int>::quiet_NaN(), std::numeric_limits<int>::quiet_NaN()));
+		}
 	}
+}
+
+int HoughTransform::SaveVertexes(const string& filename)
+{
+	ofstream file(filename, ios_base::out | ios_base::trunc);
+	if (!file.is_open()) return -1; // если файл не открыт
+	for (auto i : this->GetVertexes())
+		file << i.first << " " << i.second << endl;
+	file.close();
+	return 0;
 }
 
 const std::vector<std::pair<double, double>>& HoughTransform::GetVertexes()
@@ -91,36 +104,23 @@ const std::vector<std::pair<double, double>>& HoughTransform::GetVertexes()
 	return vertexes;
 }
 
-void HoughTransform::NormalizeAccumArray()
+std::pair<int, int> HoughTransform::FindAccumMax()
 {
-	//если max >  gray_scale, умножаем все поля на коэфициент  * gray_scale / max
-	int max_th = 0, max_rd = 0;
-	int max = HoughTransform::FindAccumMax(max_th, max_rd);
-	if (max < gray_scale) return;
-	for (int y = 0; y < r_max; y++) {
-		for (int x = 0; x < theta_max; x++)
-		{
-			accum_array[x + theta_max * y] = (unsigned int)((double)accum_array[x + theta_max * y] / max * gray_scale);
-		}
-	}
-}
-
-int HoughTransform::FindAccumMax(int& x, int& y)
-{
-	unsigned int max = accum_array[0];
+	int max = this->accum_array[0];
+	int x = 0, y = 0;
 	//определяем максимум accum_array полным перебором
 	for (int fy = 0; fy < r_max; fy++) {
 		for (int fx = 0; fx < theta_max; fx++)
 		{
-			if (max < accum_array[fx + theta_max * fy])
+			if (max < this->accum_array[fx + theta_max * fy])
 			{
-				max = accum_array[fx + theta_max * fy];
+				max = this->accum_array[fx + theta_max * fy];
 				x = fx;
 				y = fy;
 			}
 		}
 	}
-	return max;
+	return std::make_pair(x, y);
 }    
 
 //зануляем пик (x,y) в квадрате +-peak_area
@@ -134,6 +134,21 @@ void HoughTransform::ErasePeak(int x,int y,int peak_area)
 		}
 }
 
+void HoughTransform::NormalizeAccumArray()
+{
+	//если max >  gray_scale, умножаем все поля на коэфициент  * gray_scale / max
+	
+	std::pair<int,int> max_coordinates = this->FindAccumMax();
+	int max = this->accum_array[max_coordinates.first, max_coordinates.second];
+	if (max < gray_scale) return;
+	for (int y = 0; y < r_max; y++) {
+		for (int x = 0; x < theta_max; x++)
+		{
+			this->accum_array[x + theta_max * y] = (this->accum_array[x + theta_max * y]  * gray_scale / max);
+		}
+	}
+}
+
 int HoughTransform::Save(const	string& filename)
 {
 	NormalizeAccumArray();
@@ -144,7 +159,7 @@ int HoughTransform::Save(const	string& filename)
 	for (int y = 0; y < r_max; y++) {
 		for (int x = 0; x < theta_max; x++)
 		{
-			hough_image_file << (unsigned char)accum_array[x + theta_max * y];
+			hough_image_file << static_cast<unsigned char>(this->accum_array[x + theta_max * y]);
 		}
 	}
 	hough_image_file.close();

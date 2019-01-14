@@ -1,17 +1,13 @@
-
-
 #include "Triangle.h"
-
 
 using namespace std;
 
 const double Triangle::PI = 3.141592653589793238463;
 
-
 Triangle::Triangle() {
 
 	re.seed((unsigned long)time(nullptr));
-	unif = uniform_real_distribution<>(0,(double)plot_bound);
+	unif = uniform_real_distribution<>(0,static_cast<double>(plot_bound));
 	do {
 		vertex_A.first = unif(re);
 		vertex_A.second = unif(re);
@@ -57,7 +53,7 @@ double Triangle::get_angle_C()
 int Triangle::Save(const string& file_name)
 {
 	ofstream file(file_name, ios_base::out | ios_base::trunc);
-	if (!file.is_open()) return -1; // если файл не открыт
+	if (!file.is_open()) return -1;
 	file << this->get_vertex_A().first << " " << this->get_vertex_A().second << endl;
 	file << this->get_vertex_B().first << " " << this->get_vertex_B().second << endl;
 	file << this->get_vertex_C().first << " " << this->get_vertex_C().second << endl;
@@ -84,5 +80,5 @@ double Triangle::SideLength(pair<double, double> vertex_X, pair<double, double> 
 };
 
 double Triangle::VertexAngle(double a, double b, double c) {
-	return 180 / PI * acos((pow(b, 2) + pow(c, 2) - pow(a, 2))/(2 * b * c));
+	return 180.0 / PI * acos((pow(b, 2) + pow(c, 2) - pow(a, 2))/(2 * b * c));
 };
