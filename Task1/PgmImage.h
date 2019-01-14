@@ -20,6 +20,7 @@ public:
 	int CheckPixelDencity() const;
 	const static int abscissa = plot_bound;
 	const static int ordinate = plot_bound;
+	const static int grayscale = gray_scale;
 
 private:
 
