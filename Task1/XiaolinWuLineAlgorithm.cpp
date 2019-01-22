@@ -1,5 +1,8 @@
-#include "XiaolinWuLineAlgorithm.h"
+// This is a personal academic project. Dear PVS-Studio, please check it.
 
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
+
+#include "XiaolinWuLineAlgorithm.h"
 
 XiaolinWuLineAlgorithm::XiaolinWuLineAlgorithm()
 {
@@ -13,11 +16,12 @@ XiaolinWuLineAlgorithm::~XiaolinWuLineAlgorithm()
 
 void XiaolinWuLineAlgorithm::DrawWuLine(double x0, double y0, double x1, double y1, PgmImage& image)
 {
+	
 	double dx = (x1 > x0) ? (x1 - x0) : (x0 - x1);
 	double dy = (y1 > y0) ? (y1 - y0) : (y0 - y1);
 
 	//≈сли лини€ параллельна одной из осей, рисуем обычную линию - заполн€ем все пикселы в р€д
-	if (round(x1) == round(x0) || round(y1) == round(y0))
+	if (lround(x1) == lround(x0) || lround(y1) == lround(y0))
 	{
 		DrawStraitLine(x0, y0, x1, y1, image);
 		return;
@@ -27,7 +31,11 @@ void XiaolinWuLineAlgorithm::DrawWuLine(double x0, double y0, double x1, double 
 	if (dy < dx)
 	{
 		//ѕерва€ точка должна иметь меньшую координату ’
-		if (x1 < x0) std::swap(x0, x1);
+		if (x1 < x0)
+		{
+			std::swap(x0, x1);
+			std::swap(y0, y1);
+		}
 		
 		//ќтносительное изменение координаты Y
 		double gradient = dy / dx;
@@ -66,7 +74,11 @@ void XiaolinWuLineAlgorithm::DrawWuLine(double x0, double y0, double x1, double 
 	else
 	{
 		//ѕерва€ точка должна иметь меньшую координату Y
-		if (y1 < y0) std::swap(y0, y1);
+		if (y1 < y0)
+		{
+			std::swap(x0, x1);
+			std::swap(y0, y1);
+		}
 		//ќтносительное изменение координаты X
 		double gradient = dx / dy;
 		if (x1 < x0) gradient = -gradient;
@@ -104,7 +116,7 @@ void XiaolinWuLineAlgorithm::DrawWuLine(double x0, double y0, double x1, double 
 
 void XiaolinWuLineAlgorithm::DrawStraitLine(double x0, double y0, double x1, double y1, PgmImage& image)
 {
-	if (round(x1) == round(x0))
+	if (lround(x1) == lround(x0))
 	{
 		int dx = (x0 < PgmImage::abscissa - 1) ? static_cast<int>(round(x0)) : IPart(x0);
 		if (y0 > y1) std::swap(y0, y1);
@@ -114,7 +126,7 @@ void XiaolinWuLineAlgorithm::DrawStraitLine(double x0, double y0, double x1, dou
 			image.Plot(dx, dy, PgmImage::grayscale);
 		}
 	}
-	else if (round(y1) == round(y0))
+	else if (lround(y1) == lround(y0))
 	{
 		int dy = (y0 < PgmImage::ordinate - 1) ? static_cast<int>(round(y0)) : IPart(y0);
 		if (x0 > x1) std::swap(x0, x1);

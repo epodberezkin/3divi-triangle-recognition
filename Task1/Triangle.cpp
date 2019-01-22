@@ -1,3 +1,7 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
+
 #include "Triangle.h"
 
 using namespace std;
@@ -54,10 +58,10 @@ int Triangle::Save(const string& file_name)
 {
 	ofstream file(file_name, ios_base::out | ios_base::trunc);
 	if (!file.is_open()) return -1;
-	file << this->get_vertex_A().first << " " << this->get_vertex_A().second << endl;
-	file << this->get_vertex_B().first << " " << this->get_vertex_B().second << endl;
-	file << this->get_vertex_C().first << " " << this->get_vertex_C().second << endl;
-	//file << this->get_angle_A() << "% " << this->get_angle_B() << "% " << this->get_angle_C() << "%" << endl;
+	file << get_vertex_A().first << " " << get_vertex_A().second << endl;
+	file << get_vertex_B().first << " " << get_vertex_B().second << endl;
+	file << get_vertex_C().first << " " << get_vertex_C().second << endl;
+	//file << get_angle_A() << "% " << get_angle_B() << "% " << get_angle_C() << "%" << endl;
 	file.close();
 	return 0;
 }

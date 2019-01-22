@@ -1,8 +1,11 @@
 #pragma once
 #include "Constants.h"
 #include "PgmImage.h"
+#include "MedianFilter.h"
 #include <cmath>
 #include <fstream>
+
+#include "AlphaTrimmedMeanFilter.h"
 
 class HoughTransform
 {
@@ -10,7 +13,7 @@ public:
 	HoughTransform();
 	~HoughTransform();
 	int Save(const std::string&);
-	void MakeTransform(const PgmImage&);
+	void MakeTransform(PgmImage&);
 	void FindLines(int);
 	void CalculateVertexes();
 	int SaveVertexes(const std::string&);

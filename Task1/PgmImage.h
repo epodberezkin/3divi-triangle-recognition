@@ -13,10 +13,13 @@ public:
 	PgmImage();
 	~PgmImage();
 	void Plot(int, int, int);
+	const std::vector<unsigned char>& GetBitmap() const;
 	int Save(const std::string&);
 	int Open(const std::string&);
+	void SetBitmap(std::vector<unsigned char>&);
+	void SetBitmap(unsigned char * new_bitmap);
 	void MakeNoise(double);
-	bool CheckPixel(int, int, int) const;
+	bool CheckPixel(int, int, int&) const;
 	int CheckPixelDencity() const;
 	const static int abscissa = plot_bound;
 	const static int ordinate = plot_bound;

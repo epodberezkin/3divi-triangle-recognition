@@ -7,7 +7,7 @@ public:
 	XiaolinWuLineAlgorithm();
 	~XiaolinWuLineAlgorithm();
 	static void DrawWuLine(double, double, double, double, PgmImage&);
-//	static void DrawStraitLine(double, double, double, double, PgmImage&);
+	static void DrawStraitLine(double, double, double, double, PgmImage&);
 private:
 	static int IPart(double);
 	static double FPart(double);

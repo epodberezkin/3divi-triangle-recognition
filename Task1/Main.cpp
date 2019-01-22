@@ -1,3 +1,7 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: http://www.viva64.com
+
 //#include <sstream>
 //#include <time.h>
 //#include <iomanip>
@@ -27,9 +31,13 @@ int main(int argc, char **argv) {
 		Triangle random_triangle;
 		PgmImage triangle_image;
 
-		XiaolinWuLineAlgorithm::DrawWuLine(random_triangle.get_vertex_A().first, random_triangle.get_vertex_A().second, random_triangle.get_vertex_B().first, random_triangle.get_vertex_B().second, triangle_image);
-		XiaolinWuLineAlgorithm::DrawWuLine(random_triangle.get_vertex_B().first, random_triangle.get_vertex_B().second, random_triangle.get_vertex_C().first, random_triangle.get_vertex_C().second, triangle_image);
-		XiaolinWuLineAlgorithm::DrawWuLine(random_triangle.get_vertex_C().first, random_triangle.get_vertex_C().second, random_triangle.get_vertex_A().first, random_triangle.get_vertex_A().second, triangle_image);
+		std::pair<double, double> vertex_A = random_triangle.get_vertex_A();
+		std::pair<double, double> vertex_B = random_triangle.get_vertex_B();
+		std::pair<double, double> vertex_C = random_triangle.get_vertex_C();
+
+		XiaolinWuLineAlgorithm::DrawWuLine(vertex_A.first, vertex_A.second, vertex_B.first, vertex_B.second, triangle_image);
+		XiaolinWuLineAlgorithm::DrawWuLine(vertex_B.first, vertex_B.second, vertex_C.first, vertex_C.second, triangle_image);
+		XiaolinWuLineAlgorithm::DrawWuLine(vertex_C.first, vertex_C.second, vertex_A.first, vertex_A.second, triangle_image);
 
 		triangle_image.MakeNoise(noise_probability);
 		
@@ -54,7 +62,6 @@ int main(int argc, char **argv) {
 			h_transf.MakeTransform(triangle_image);
 			//h_transf.Save("before.pgm");
 			h_transf.FindLines(3);
-			//h_transf.Save("after.pgm");
 			h_transf.CalculateVertexes();
 			h_transf.SaveVertexes("output.txt");
 		}
