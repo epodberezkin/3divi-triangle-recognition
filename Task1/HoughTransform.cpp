@@ -21,20 +21,20 @@ HoughTransform::~HoughTransform()
 void HoughTransform::MakeTransform(PgmImage& original_image)
 {
 	//проверка фильтра CheckPixel
-	unsigned char * check_array = new unsigned char [PgmImage::abscissa * PgmImage::ordinate];
+	unsigned char * check_array = new unsigned char[PgmImage::abscissa * PgmImage::ordinate]();
 	const std::vector<unsigned char>& orig_bitmap = original_image.GetBitmap();
 
 	//memcpy(check_array, orig_bitmap.data(), orig_bitmap.size() * sizeof(unsigned char));
-	std::copy(orig_bitmap.begin(), orig_bitmap.end(), check_array);
-	alphatrimmedmeanfilter(check_array, nullptr, PgmImage::abscissa, PgmImage::ordinate, 8);
-	original_image.SetBitmap(check_array);
+	//std::copy(orig_bitmap.begin(), orig_bitmap.end(), check_array);
+	//alphatrimmedmeanfilter(check_array, nullptr, PgmImage::abscissa, PgmImage::ordinate, 8);
+	//original_image.SetBitmap(check_array);
 
 	std::vector<unsigned char> check_bitmap(PgmImage::abscissa * PgmImage::ordinate, 0);
 	//MedianFilter::DoFilter(&orig_bitmap[original_image.abscissa + 1], original_image.abscissa, original_image.abscissa - 2, original_image.ordinate - 2, &check_bitmap[original_image.abscissa + 1], original_image.abscissa);
 	//original_image.SetBitmap(check_bitmap);
 	
 	int	pixel_density = original_image.CheckPixelDencity();
-	
+	Sobel::operate(orig_bitmap.data(), check_array, PgmImage::abscissa, PgmImage::ordinate);
 	// пробегаемся по пикселям изображения контуров
 	for (int y = 0; y < original_image.ordinate; y++) {
 		for (int x = 0; x < original_image.abscissa; x++) {
@@ -56,12 +56,12 @@ void HoughTransform::MakeTransform(PgmImage& original_image)
 		}
 	}
 	
-	
+	//PgmImage::Save("test_check.pgm", check_bitmap, PgmImage::abscissa, PgmImage::ordinate);
 	ofstream file("test_check.pgm", ios_base::out | ios::binary | ios_base::trunc);
 	if (!file.is_open()) return; // если файл не открыт
 	file << "P5\n" << PgmImage::abscissa << " " << PgmImage::ordinate << "\n" << gray_scale << "\n";
-	file.write((char *)check_bitmap.data(), check_bitmap.size());
-	//file.write((char *)check_array, PgmImage::abscissa * PgmImage::ordinate * sizeof(unsigned char));
+	//file.write((char *)check_bitmap.data(), check_bitmap.size());
+	file.write((char *)check_array, PgmImage::abscissa * PgmImage::ordinate * sizeof(unsigned char));
 	file.close();
 	delete[] check_array;
 }
