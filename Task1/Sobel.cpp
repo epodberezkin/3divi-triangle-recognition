@@ -42,7 +42,7 @@ void Sobel::operate(const uint8_t * src, uint8_t * dst, int width, int height)
 				GY[1][0] * src[x - 1 + y * width] + GY[1][1] * src[x + y * width] + GY[1][2] * src[x + 1 + y * width] +
 				GY[2][0] * src[x - 1 + (y + 1)*width] + GY[2][1] * src[x + (y + 1)*width] + GY[2][2] * src[x + 1 + (y + 1)*width];
 
-			accum[x, y] = static_cast<uint8_t>(sqrt((pixel_x * pixel_x) + (pixel_y * pixel_y)));
+			accum[x + y * width] = static_cast<int>(sqrt((pixel_x * pixel_x) + (pixel_y * pixel_y)));
 		}
 	}
 	int * max = std::max_element(accum, accum + width * height);
