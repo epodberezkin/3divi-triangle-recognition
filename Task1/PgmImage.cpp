@@ -14,7 +14,7 @@ PgmImage::~PgmImage()
 {
 }
 
-const int PgmImage::gray_level = 127;
+const int PgmImage::gray_level = 95;
 
 const std::vector<unsigned char>& PgmImage::GetBitmap() const
 {
@@ -32,7 +32,17 @@ int PgmImage::Save(const string& file_name)
 {
 	ofstream file(file_name, ios_base::out | ios::binary | ios_base::trunc);
 	if (!file.is_open()) return -1; // если файл не открыт
-	file << "P5\n" << abscissa << " " << ordinate << "\n" << gray_scale << "\n";
+	file << "P5\n" << abscissa << " " << ordinate << "\n" << grayscale << "\n";
+	file.write((char *)bitmap.data(), bitmap.size());
+	file.close();
+	return 0;
+}
+
+int PgmImage::Save(const std::string & file_name, const std::vector<unsigned char>& bitmap, int width, int height)
+{
+	ofstream file(file_name, ios_base::out | ios::binary | ios_base::trunc);
+	if (!file.is_open()) return -1; // если файл не открыт
+	file << "P5\n" << width << " " << height << "\n" << grayscale << "\n";
 	file.write((char *)bitmap.data(), bitmap.size());
 	file.close();
 	return 0;
@@ -85,20 +95,60 @@ bool PgmImage::CheckPixel(int x, int y, int& pixel_density) const
 {
 	//pixel_density = bitmap[x + y * PgmImage::abscissa];
 	//return (bitmap[x + y * PgmImage::abscissa] > 127) ? true : false;
+
 	//если не основной пиксель линии, сразу возвращаем без доп. проверкок.
 	if (PgmImage::gray_level >= bitmap[x + y * PgmImage::abscissa]) return false;
 	else
 	{
 		// dy и dx проверям на границы массива
 		int pixel_count = 0;
-		for (int dy = (y > 1 ? (y - 2) : 0); dy <= (y < (PgmImage::ordinate - 2) ? (y + 2) : y); dy++)
-			for (int dx = (x > 1 ? (x - 2) : 0); dx <= (x < (PgmImage::abscissa - 2) ? (x + 2) : x); dx++)
+		for (int dy = (y > 1 ? (y - 2) : 0); dy < (y < (PgmImage::ordinate - 2) ? (y + 3) : y); dy++)
+			for (int dx = (x > 1 ? (x - 2) : 0); dx < (x < (PgmImage::abscissa - 2) ? (x + 3) : x); dx++)
 			{
-				if (bitmap[dx + dy * PgmImage::abscissa] > 0)
-					pixel_count++;
+				//pixel_count += bitmap[dx + dy * PgmImage::abscissa];
+				pixel_count++;
+
 			}
-		return (pixel_count > pixel_density) ? true : false;
+		//return (pixel_count > pixel_density);
+		if (pixel_count > pixel_density)
+		{
+			std:vector<int> nn;
+			if ((y > 1) && (y < (PgmImage::ordinate - 2)) && (x > 1) && (x < (PgmImage::abscissa - 2)))
+			for (int dy = (y - 2); dy < (y + 1); dy++)
+				for (int dx = (x - 2); dx < (x + 1); dx++)
+				{
+					nn.push_back(GetSquareSum(dx, dy));
+				}
+			int largest, second;
+			largest = nn[0];
+			nn[4] = 0;
+			for (int e = 1; e < 9; e++)
+			{
+				if (nn[e] > nn[largest])
+				{
+					second = largest;
+					largest = e;
+				}
+				else if (nn[e] > nn[second])
+				{
+					second = e;
+				}
+			}
+			return (largest + second == 8);
+		}
+		else return false;
 	}
+}
+
+int PgmImage::GetSquareSum(int x, int y) const
+{
+	int sum = 0;
+	for (int dy = (y - 2); dy < (y + 1); dy++)
+		for (int dx = (x - 2); dx < (x + 1); dx++)
+		{
+			sum += bitmap[x + y * PgmImage::abscissa];
+		}
+	return sum;
 }
 
 int PgmImage::CheckPixelDencity() const
@@ -115,9 +165,12 @@ int PgmImage::CheckPixelDencity() const
 	int pixel_count = PgmImage::abscissa * PgmImage::ordinate;
 	gray_pixel_count = gray_pixel_count << 4;
 
-	//Для P > 0.8
-	int pixel_density = 20;
 
+	//return (gray_pixel_count * 16 * 127 / pixel_count + 255 * 5 + 63);
+
+		
+	//Для P > 0.8
+	int pixel_density = 23;
 	if (gray_pixel_count < pixel_count * 19 / 80)
 	{//для 0.0-0.2
 		pixel_density = 8;
@@ -128,14 +181,14 @@ int PgmImage::CheckPixelDencity() const
 	}
 	else if (gray_pixel_count < pixel_count * 7 / 16)
 	{//для 0.4
-		pixel_density = 14;
+			pixel_density = 14;
 	}
 	else if (gray_pixel_count < pixel_count * 43 / 80)
 	{//для 0.5
 		pixel_density = 17;
 	}
 	else if (gray_pixel_count < pixel_count * 51 / 80)
-	{//для 0.6
+		{//для 0.6
 		pixel_density = 18;
 	}
 	else if (gray_pixel_count < pixel_count * 59 / 80)
